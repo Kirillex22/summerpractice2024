@@ -122,7 +122,6 @@ fun paintCharacterPreview(character: Character) {
     }
 }
 
-
 @Composable
 fun paintCharacterFull(character: Character, navController: NavHostController) {
     Box(modifier = Modifier
@@ -163,7 +162,6 @@ fun paintCharacterFull(character: Character, navController: NavHostController) {
         }
     }
 }
-
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
