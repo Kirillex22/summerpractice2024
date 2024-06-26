@@ -25,8 +25,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -40,14 +45,20 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.summerpractice2024.ui.theme.Summerpractice2024Theme
 
 
-class Character(name: String, resourcesLink: String, welcomeMessage: String)
+class Character(
+    name: String,
+    resourcesLink: String,
+    welcomeMessage: String)
 {
+    private var _id : Int = 0
     private var _name : String = name
     private var _resourcesLink : String = resourcesLink
     private var _welcomeMessage = welcomeMessage
@@ -62,6 +73,28 @@ class Character(name: String, resourcesLink: String, welcomeMessage: String)
 
     fun getMessage() : String {
         return _welcomeMessage
+    }
+}
+
+class CharactersContainer
+{
+    private var _characters : MutableMap<String?, Character> = mutableMapOf()
+
+    fun addCharacter(character : Character)
+    {
+        _characters.put(character.getName(), character)
+    }
+
+    fun getCharacterByName(name: String?) : Character
+    {
+        return _characters.getOrDefault(
+            key = name,
+            defaultValue = Character(
+                name = "Undefined",
+                resourcesLink = "https://i.pinimg.com/564x/0e/9b/1e/0e9b1e7319dae4b8046c5366d62532e3.jpg",
+                welcomeMessage = "Undefined"
+            )
+        )
     }
 }
 
@@ -85,12 +118,19 @@ var CHARACTERS = listOf(
     )
 )
 
+var CHARACTERS_CONTAINER = CharactersContainer()
+
+
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             Summerpractice2024Theme {
+                CHARACTERS.forEach{
+                    CHARACTERS_CONTAINER.addCharacter(it)
+                }
                 val navController = rememberNavController()
                 AppNavGraph(navController)
             }
@@ -100,6 +140,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun paintCharacterPreview(character: Character) {
+
     Box(modifier = Modifier
         .size(300.dp, 550.dp)
     ) {
@@ -123,7 +164,10 @@ fun paintCharacterPreview(character: Character) {
 }
 
 @Composable
-fun paintCharacterFull(character: Character, navController: NavHostController) {
+fun paintCharacterFull(
+    character: Character,
+    navController: NavHostController) {
+
     Box(modifier = Modifier
         .fillMaxSize()
     ) {
@@ -151,7 +195,7 @@ fun paintCharacterFull(character: Character, navController: NavHostController) {
             modifier = Modifier
                 .padding(start = 20.dp, top = 20.dp)
                 .size(32.dp, 28.dp)
-                .clickable(onClick = {navController.navigate("characters_preview")}),
+                .clickable(onClick = { navController.navigate("characters_preview") }),
         ){
             Image(
                 bitmap = ImageBitmap.imageResource(R.drawable.left_arrow),
@@ -165,7 +209,11 @@ fun paintCharacterFull(character: Character, navController: NavHostController) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun paintPreview(characters : List<Character>, navController: NavHostController, listState: LazyListState) {
+fun paintPreview(
+    characters : List<Character>,
+    navController: NavHostController,
+    listState: LazyListState) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -207,7 +255,7 @@ fun paintPreview(characters : List<Character>, navController: NavHostController,
                 .padding(top = 80.dp, start = 50.dp, end = 50.dp)
         ) {
             items(characters) { character ->
-                //var isSelected by remember { mutableStateOf(value = false) }
+                var isSelected by remember { mutableStateOf(value = false) }
 
                 Column(modifier = Modifier
                     .clickable(
@@ -216,11 +264,12 @@ fun paintPreview(characters : List<Character>, navController: NavHostController,
                                 "${
                                     character
                                         .getName()
-                                        .lowercase()
                                 }_info"
                             )
+                            isSelected = true
                         }
                     )
+                    .blur(radius = if (isSelected) 10.dp else 0.dp)
                 ){paintCharacterPreview(character)}
                 Spacer(modifier = Modifier.size(12.dp))
             }
@@ -242,16 +291,16 @@ fun AppNavGraph(navController: NavHostController)
             paintPreview(CHARACTERS, navController, listState)
         }
 
-        composable("deadpool_info"){
-            paintCharacterFull(character = CHARACTERS[0], navController)
-        }
-
-        composable("iron-man_info"){
-            paintCharacterFull(character = CHARACTERS[1], navController)
-        }
-
-        composable("spider-man_info"){
-            paintCharacterFull(character = CHARACTERS[2], navController)
+        composable(
+            route = "{name}_info",
+            arguments = listOf(navArgument("name") { type = NavType.StringType })){
+                backStackEntry ->
+            paintCharacterFull(
+                character = CHARACTERS_CONTAINER.getCharacterByName(
+                    backStackEntry.arguments?.getString("name")
+                ),
+                navController = navController
+            )
         }
     }
 }
