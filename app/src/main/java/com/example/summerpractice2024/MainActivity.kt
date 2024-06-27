@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
@@ -14,8 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -54,74 +53,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.summerpractice2024.ui.theme.Summerpractice2024Theme
 
-
-class Character(
-    name: String,
-    resourcesLink: String,
-    welcomeMessage: String)
-{
-    private var _name : String = name
-    private var _resourcesLink : String = resourcesLink
-    private var _welcomeMessage = welcomeMessage
-
-    fun getName() : String {
-        return _name
-    }
-
-    fun getLink() : String {
-        return _resourcesLink
-    }
-
-    fun getMessage() : String {
-        return _welcomeMessage
-    }
-}
-
-class CharactersContainer
-{
-    private var _characters : MutableMap<String?, Character> = mutableMapOf()
-
-    fun addCharacter(character : Character)
-    {
-        _characters[character.getName()] = character
-    }
-
-    fun getCharacterByName(name: String?) : Character
-    {
-        return _characters.getOrDefault(
-            key = name,
-            defaultValue = Character(
-                name = "Undefined",
-                resourcesLink = "https://i.pinimg.com/564x/0e/9b/1e/0e9b1e7319dae4b8046c5366d62532e3.jpg",
-                welcomeMessage = "Undefined"
-            )
-        )
-    }
-}
-
-var MARVER_LOGO_LINK = "https://iili.io/JMnuvbp.png"
-
-var CHARACTERS = listOf(
-    Character(
-        name = "Deadpool",
-        resourcesLink = "https://iili.io/JMnAfIV.png",
-        welcomeMessage = "I'm deadpool, baby!"
-    ),
-    Character(
-        name ="Iron-Man",
-        resourcesLink = "https://iili.io/JMnuDI2.png",
-        welcomeMessage = "I am Iron Man."
-    ),
-    Character(
-        name = "Spider-Man",
-        resourcesLink = "https://iili.io/JMnuyB9.png",
-        welcomeMessage = "Your friendly neighborhood Spider-Man."
-    )
-)
-
-var CHARACTERS_CONTAINER = CharactersContainer()
-
-
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,31 +71,55 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PaintCharacterPreview(character: Character) {
+fun PaintCharacterPreview(
+    character: Character,
+    navController: NavHostController,
+    modifier: Modifier) {
 
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(character.getLink())
-            .crossfade(true)
-            .build(),
-        contentDescription = "Superhero",
-        contentScale = ContentScale.Crop,
-        clipToBounds = true,
-        modifier = Modifier
-            .size(300.dp, 550.dp)
-            .clip(shape = RoundedCornerShape(10.dp))
-    )
+    var isSelected by remember { mutableStateOf(value = false) }
 
-    Text(text = character.getName(), color = Color.White, fontSize = 30.sp, modifier = Modifier
-        .padding(start = 15.dp, top = 500.dp)
-    )
+    Column(
+        modifier = modifier
+        .clickable(
+            onClick = {
+                navController.navigate(
+                    route = "${
+                        character
+                            .getName()
+                    }_info"
+                )
+                isSelected = true
+            }
+        )
+        .blur(radius = if (isSelected) 10.dp else 0.dp)
+    ) {
+        Box(){
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(character.getLink())
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Superhero",
+                contentScale = ContentScale.Crop,
+                clipToBounds = true,
+                modifier = Modifier
+                    .size(300.dp, 550.dp)
+                    .clip(shape = RoundedCornerShape(10.dp))
+            )
 
+            Text(
+                text = character.getName(), color = Color.White, fontSize = 30.sp, modifier = modifier
+                    .padding(start = 15.dp, top = 500.dp)
+            )
+        }
+    }
 }
 
 @Composable
 fun PaintCharacterFull(
     character: Character,
-    navController: NavHostController) {
+    navController: NavHostController,
+    modifier: Modifier) {
 
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
@@ -174,27 +129,28 @@ fun PaintCharacterFull(
         contentDescription = "Superhero",
         contentScale = ContentScale.Crop,
         clipToBounds = true,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .clip(shape = RoundedCornerShape(10.dp))
     )
 
-    Text(text = character.getName(), color = Color.White, fontSize = 30.sp, modifier = Modifier
+    Text(text = character.getName(), color = Color.White, fontSize = 30.sp, modifier = modifier
         .padding(start = 15.dp, top = 750.dp)
     )
-    Text(text = character.getMessage(), color = Color.White, modifier = Modifier
+    Text(text = character.getMessage(), color = Color.White, modifier = modifier
         .padding(start = 15.dp, top = 800.dp)
     )
     Box(
-        modifier = Modifier
-            .padding(start = 20.dp, top = 30.dp)
-            .size(32.dp, 28.dp)
-            .clickable(onClick = { navController.navigate("characters_preview") }),
+        modifier = modifier
+            .padding(start = 20.dp, top = 35.dp)
+            .size(40.dp, 35.dp)
+            .clickable(onClick = { navController.navigate("characters_preview") })
+            .clip(shape = RoundedCornerShape(10.dp))
     ){
         Image(
             bitmap = ImageBitmap.imageResource(R.drawable.left_arrow),
             contentDescription = "Left arrow",
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
         )
     }
@@ -205,10 +161,11 @@ fun PaintCharacterFull(
 fun PaintPreview(
     characters : List<Character>,
     navController: NavHostController,
-    listState: LazyListState) {
+    listState: LazyListState,
+    modifier: Modifier) {
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(
                 brush = Brush.linearGradient(
@@ -221,55 +178,41 @@ fun PaintPreview(
                 shape = RoundedCornerShape(16.dp)
             )
     ) {
-        Row(modifier = Modifier
+        Row(modifier
             .align(Alignment.CenterHorizontally)
             .padding(top = 60.dp)
         ) {
             AsyncImage(
                 model = MARVER_LOGO_LINK,
                 contentDescription = "Marvel Studios",
-                modifier = Modifier
+                modifier = modifier
                     .height(27.dp)
                     .width(128.dp)
             )
         }
 
-        Row(modifier = Modifier
+        Row(modifier
             .padding(top = 90.dp)
             .align(Alignment.CenterHorizontally)
         ){
             Text(text = "Choose your hero", color = Color.White)
         }
 
-        LazyRow(
-            state = listState,
-            flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
-            //horizontalArrangement = Arrangement.SpaceEvenly, //doesn't work at all
-            modifier = Modifier
-                .padding(top = 80.dp)
-                .fillMaxWidth()
+        Box(modifier
+            .align(Alignment.CenterHorizontally)
+            .width(300.dp)
         ) {
-            items(characters) { character ->
-                var isSelected by remember { mutableStateOf(value = false) }
-
-                Spacer(modifier = Modifier.size(50.dp))
-
-                Column(modifier = Modifier
-                    .clickable(
-                        onClick = {
-                            navController.navigate(
-                                route = "${
-                                    character
-                                        .getName()
-                                }_info"
-                            )
-                            isSelected = true
-                        }
-                    )
-                    .blur(radius = if (isSelected) 10.dp else 0.dp)
-                ){PaintCharacterPreview(character)}
-
-                Spacer(modifier = Modifier.size(50.dp))
+            LazyRow(
+                state = listState,
+                flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
+                horizontalArrangement = Arrangement.spacedBy(30.dp),
+                modifier = modifier
+                    .padding(top = 60.dp)
+                    .fillMaxSize()
+                ){
+                items(characters) { character ->
+                    PaintCharacterPreview(character, navController,modifier)
+                }
             }
         }
     }
@@ -286,18 +229,20 @@ fun AppNavGraph(navController: NavHostController)
     ) {
 
         composable("characters_preview") {
-            PaintPreview(CHARACTERS, navController, listState)
+            PaintPreview(CHARACTERS, navController, listState, Modifier)
         }
 
         composable(
             route = "{name}_info",
-            arguments = listOf(navArgument("name") { type = NavType.StringType })){
-                backStackEntry ->
+            arguments = listOf(navArgument("name") { type = NavType.StringType })
+        ){
+            backStackEntry ->
             PaintCharacterFull(
                 character = CHARACTERS_CONTAINER.getCharacterByName(
                     backStackEntry.arguments?.getString("name")
                 ),
-                navController = navController
+                navController = navController,
+                modifier = Modifier
             )
         }
     }
