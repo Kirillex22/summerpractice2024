@@ -131,7 +131,6 @@ fun PaintCharacterFull(
         clipToBounds = true,
         modifier = modifier
             .fillMaxSize()
-            .clip(shape = RoundedCornerShape(10.dp))
     )
 
     Text(text = character.getName(), color = Color.White, fontSize = 30.sp, modifier = modifier
@@ -174,13 +173,12 @@ fun PaintPreview(
                         Color.DarkGray,
                         Color.Red
                     ), start = Offset(666.0f, 666.0f)
-                ),
-                shape = RoundedCornerShape(16.dp)
+                )
             )
     ) {
         Row(modifier
             .align(Alignment.CenterHorizontally)
-            .padding(top = 60.dp)
+            .padding(top = 40.dp)
         ) {
             AsyncImage(
                 model = MARVER_LOGO_LINK,
@@ -192,7 +190,7 @@ fun PaintPreview(
         }
 
         Row(modifier
-            .padding(top = 90.dp)
+            .padding(top = 60.dp)
             .align(Alignment.CenterHorizontally)
         ){
             Text(text = "Choose your hero", color = Color.White)
@@ -207,7 +205,7 @@ fun PaintPreview(
                 flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
                 horizontalArrangement = Arrangement.spacedBy(30.dp),
                 modifier = modifier
-                    .padding(top = 60.dp)
+                    .padding(top = 65.dp, bottom = 30.dp)
                     .fillMaxSize()
                 ){
                 items(characters) { character ->
